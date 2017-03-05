@@ -1,0 +1,17 @@
+{
+  "name": "node-server",
+  "version": "1.0.0",
+  "description": "Demo node server for Docker training",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Evan Waters",
+  "license": "ISC",
+  "dependencies": {
+    "config": "^1.25.1",
+    "mongoose": "^4.8.5",
+    "restify": "^4.3.0",
+    "restify-mongoose": "^1.0.0"
+  }
+}

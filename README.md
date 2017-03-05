@@ -175,6 +175,13 @@ Use `exec` to execute a command on a running container, such as `/bin/bash`, whi
     $ root@d883dca5ee4e:/opt/appserver# pwd
     > /opt/appserver
 
+Add `--name` to launch a container with a defined name (this name can be used in place of the container id):
+
+    $ docker run -d -p9080:80 --name appserver appserver/example
+    $ docker ps
+    CONTAINER ID      ...    NAMES
+    1765b8cfab84      ...    appserver
+
 Stop a running container:
 
     $ docker stop <CONTAINER ID>
@@ -183,8 +190,14 @@ Remove a running container:
 
     $ docker rm -f <CONTAINER ID>
 
-Print a list of installed docker *images*:
+Print a list of installed docker `images`:
 
     $ docker images
     REPOSITORY              TAG     ...
     macinv/flask-example    latest  ...
+
+# Building Images
+
+## Dockerfile
+
+Docker can build images automatically by reading the instructions from a `Dockerfile`. A Dockerfile is a text document that contains all the commands a user could call on the command line to assemble an image. Using `docker build` users can create an automated build that executes several command-line instructions in succession.

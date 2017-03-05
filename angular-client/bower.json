@@ -1,0 +1,17 @@
+{
+  "name": "angular-client",
+  "homepage": "https://github.com/mkulumadzi/docker-training",
+  "authors": [
+    "Evan Waters <evan.waters@gmail.com>"
+  ],
+  "description": "Demo angular app for Docker training",
+  "main": "app.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
