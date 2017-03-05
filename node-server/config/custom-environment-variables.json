@@ -1,0 +1,6 @@
+{
+  "Mongo": {
+    "host": "MONGO_HOST",
+    "database": "MONGO_DATABASE"
+  }
+}
