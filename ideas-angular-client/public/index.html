@@ -29,17 +29,16 @@
 <body ng-controller="ideasController">
   <div class="container">
 
-    <div class="jumbotron text-center">
-      <h1>Idea App</h1>
-      <h2>A place to record your ideas</h2>
-    </div>
-
-    <div id="idea-form" class="row">
-      <div class="col-sm-8 col-sm-offset-2 text-center">
+    <div class="col-sm-8 col-sm-offset-2">
+      <div class="jumbotron">
         <form>
           <div class="form-group">
-            Idea: <input type="text" class="form-control input-lg text-left" placeholder="Idea" ng-model="formData.idea">
-            Description: <input type="text" class="form-control input-lg text-left" placeholder="Description" ng-model="formData.description">
+            <label for="formGroupExampleInput">Idea: </label>
+            <input type="text" class="form-control input-lg text-left" placeholder="What's your idea?" ng-model="formData.idea">
+          </div>
+          <div class="form-group">
+            <label for="formGroupExampleInput">Description: </label>
+            <input type="text" class="form-control input-lg text-left" ng-model="formData.description">
           </div>
 
           <!-- createIdea() will create new ideas -->
@@ -49,12 +48,20 @@
     </div>
 
     <div id="idea-list" class="row">
-      <div class="col-sm-4 col-sm-offset-4">
+      <div class="col-sm-8 col-sm-offset-2">
+
+        <div class="page-header">
+          <h2>Your ideas:</h2>
+        </div>
 
         <!-- LOOP OVER THE IDEAS IN $scope.ideas -->
         <div ng-repeat="idea in ideas">
-          <label class="bold">{{ idea.idea }}</label>
-          <label class="emphasis">{{ idea.description }}</label>
+
+          <div class="list-group">
+            <h4 class="list-group-item-heading">{{ idea.idea }}</h4>
+            <p class="list-group-item-text">{{ idea.description }}</p>
+          </div>
+
         </div>
 
       </div>
