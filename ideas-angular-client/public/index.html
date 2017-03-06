@@ -1,0 +1,67 @@
+<!doctype html>
+
+<!-- ASSIGN ANGULAR MODULE -->
+<html ng-app="ideasApp">
+
+<head>
+  <!-- META -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Ideas App</title>
+
+  <!-- SCROLLS -->
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+  <style>
+    html                { overflow-y:scroll; }
+    body                { padding-top:50px; }
+    #idea-list          { margin-bottom:30px; }
+  </style>
+
+  <!-- SPELLS -->
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>
+  <script src="app.js"></script>
+
+</head>
+
+<!-- SET CONTROLLER AND GET IDEAS -->
+<body ng-controller="ideasController">
+  <div class="container">
+
+    <div class="jumbotron text-center">
+      <h1>Idea App</h1>
+      <h2>A place to record your ideas</h2>
+    </div>
+
+    <div id="idea-form" class="row">
+      <div class="col-sm-8 col-sm-offset-2 text-center">
+        <form>
+          <div class="form-group">
+            Idea: <input type="text" class="form-control input-lg text-left" placeholder="Idea" ng-model="formData.idea">
+            Description: <input type="text" class="form-control input-lg text-left" placeholder="Description" ng-model="formData.description">
+          </div>
+
+          <!-- createIdea() will create new ideas -->
+          <button type="submit" class="btn btn-primary btn-lg" ng-click="createIdea()">Submit</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="idea-list" class="row">
+      <div class="col-sm-4 col-sm-offset-4">
+
+        <!-- LOOP OVER THE IDEAS IN $scope.ideas -->
+        <div ng-repeat="idea in ideas">
+          <label class="bold">{{ idea.idea }}</label>
+          <label class="emphasis">{{ idea.description }}</label>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</body>
+
+
+</html>

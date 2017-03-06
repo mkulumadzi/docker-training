@@ -12,3 +12,9 @@ mongodb:
     - "27017"
   ports:
     - "27017:27017"
+webapp:
+  image: mkulumadzi/ideas-angular-client
+  links:
+  - server:api1
+  ports:
+  - "80:80"
