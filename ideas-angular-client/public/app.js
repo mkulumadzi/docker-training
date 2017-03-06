@@ -4,7 +4,7 @@ function ideasController($scope, $http) {
   $scope.formData = {};
 
   // Get existing ideas and display them.
-  $http.get('http://192.168.99.100:8080/ideas')
+  $http.get('/api/ideas')
     .success(function(data) {
       $scope.ideas = data;
       console.log(data);
@@ -15,7 +15,7 @@ function ideasController($scope, $http) {
 
   // Create a new idea
   $scope.createIdea = function() {
-    $http.post('http://192.168.99.100:8080/ideas', $scope.formData)
+    $http.post('/api/ideas', $scope.formData)
     .success(function(data) {
       $scope.formData = {}; // Clear the form data
       $scope.totos = data;

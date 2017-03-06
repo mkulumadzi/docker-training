@@ -1,5 +1,7 @@
 FROM nginx
 
-COPY public/ /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+
+COPY public/ /var/www
 
 EXPOSE 80
