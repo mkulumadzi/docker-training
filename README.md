@@ -536,4 +536,4 @@ Inspecting the application's managed network:
 
 A variety of tools are available to facilitate the management of an application running containers across multiple hosts.
 
-<TO DO: Swarm stuff>
+COMING SOON: Intro to Docker Swarm.
