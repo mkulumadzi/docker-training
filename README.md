@@ -1,7 +1,7 @@
 # Docker Training
 A collection of instructions and sample files for training on Docker
 
-# Docker Machine
+## Docker Machine
 
 ### Installation
 
@@ -62,9 +62,9 @@ Configure your terminal to connect to a docker-machine (all `docker` commands fr
 
     $ eval $(docker-machine env default)
 
-# Docker Basics
+## Docker Basics
 
-## Commands:
+### Commands:
 - attach      Attach to a running container
 - build       Build an image from a Dockerfile
 - commit      Create a new image from a container's changes
@@ -106,7 +106,7 @@ Configure your terminal to connect to a docker-machine (all `docker` commands fr
 - version     Show the Docker version information
 - wait        Block until one or more containers stop, then print their exit codes
 
-## Examples
+### Examples
 
 Launch a container for an image (pulling it from a repository if it is not already available), running with an optional command:
 
@@ -190,14 +190,350 @@ Remove a running container:
 
     $ docker rm -f <CONTAINER ID>
 
+Stop all running containers:
+
+    $ docker stop $(docker ps -aqf status=running)
+
+Remove all inactive containers:
+
+    $ docker rm $(docker ps -a -q -f status=exited)
+
 Print a list of installed docker `images`:
 
     $ docker images
     REPOSITORY              TAG     ...
     macinv/flask-example    latest  ...
 
-# Building Images
+Remove an image:
 
-## Dockerfile
+    $ docker rmi -f <IMAGE ID>
 
-Docker can build images automatically by reading the instructions from a `Dockerfile`. A Dockerfile is a text document that contains all the commands a user could call on the command line to assemble an image. Using `docker build` users can create an automated build that executes several command-line instructions in succession.
+
+## Building Images
+
+### Dockerfile
+
+Docker can build images automatically by reading the instructions from a `Dockerfile`. A Dockerfile is a text document that contains all the commands a user could call on the command line to assemble an image. Using `docker build`, users can create an automated build that executes several command-line instructions in succession.
+
+### Example application: Ideas Node Server
+
+Dockerfile:
+
+    # Define base image
+    FROM node:boron
+
+    # Create app directory
+    RUN mkdir -p /usr/src/app
+    WORKDIR /usr/src/app
+
+    # Install app dependencies
+    COPY package.json /usr/src/app/
+    RUN npm install
+
+    # Bundle app source
+    COPY . /usr/src/app
+
+    EXPOSE 8080
+    CMD [ "npm", "start" ]
+
+Building the docker image:
+
+    $ docker build .
+
+    Step 1/8 : FROM node:boron
+     ---> 0cc9958f0aa8
+    Step 2/8 : RUN mkdir -p /usr/src/app
+     ---> Using cache
+     ---> 0e276f9c7ba6
+    Step 3/8 : WORKDIR /usr/src/app
+     ---> Using cache
+     ---> c472f6717822
+    Step 4/8 : COPY package.json /usr/src/app/
+     ---> Using cache
+     ---> 7a08da69041b
+    Step 5/8 : RUN npm install
+     ---> Using cache
+     ---> 78bfb3bf351d
+    Step 6/8 : COPY . /usr/src/app
+     ---> fc7862184c97
+    Removing intermediate container 94b3f3412272
+    Step 7/8 : EXPOSE 8080
+     ---> Running in be609df5dbb3
+     ---> 572c14389bf9
+    Removing intermediate container be609df5dbb3
+    Step 8/8 : CMD npm start
+     ---> Running in ad86c91ff7f4
+     ---> e96359b87a81
+    Removing intermediate container ad86c91ff7f4
+    Successfully built e96359b87a81
+
+Listing images:
+
+    $ docker images
+    REPOSITORY        TAG        IMAGE ID
+    <none>             <none>    e96359b87a81
+
+Building again, tagging with a repository and a default tag:
+
+    $ docker build -t mkulumadzi/ideas-node-server .
+    $ docker images
+    REPOSITORY                      TAG           IMAGE ID
+    mkulumadzi/ideas-node-server    latest        e96359b87a81
+
+Running the image (note: this server requires an environment variable MONGO_HOST pointing to a valid MongoDB instance; in this case we will point it at a running mongo instance on our laptop, which will be accessible to the docker-machine at IP address 192.168.99.1):
+
+    $ docker run -d -p 8080:8080 -e MONGO_HOST=192.168.99.1 --name node_idea_server mkulumadzi/ideas-node-server
+
+    $ curl -X POST http://192.168.99.100:8080/ideas -H 'Content-Type: application/json' --data '{ "idea": "Learn Docker", "description": "I should run through the Docker training so that I know how to use it." }' | python -m json.tool
+
+    $ curl -X GET http://192.168.99.100:8080/ideas | python -m json.tool
+
+Inspecting logs for the image:
+
+    $ docker logs -f node_idea_server
+    npm info it worked if it ends with ok
+    npm info using npm@3.10.10
+    npm info using node@v6.10.0
+    npm info lifecycle node-server@1.0.0~prestart: node-server@1.0.0
+    npm info lifecycle node-server@1.0.0~start: node-server@1.0.0
+
+    > node-server@1.0.0 start /usr/src/app
+    > node server.js
+
+    restify.mongoose.example.ideas listening at http://[::]:8080
+    MongoDB Connected!
+
+Inspecting the image filesystem:
+
+    $ docker exec -it node_idea_server /bin/bash
+    root@348b2156820c:/usr/src/app# ls -al
+    total 32
+    drwxr-xr-x  4 root root 4096 Mar  6 00:37 .
+    drwxr-xr-x  6 root root 4096 Mar  6 00:37 ..
+    -rw-r--r--  1 root root   27 Mar  5 22:19 .dockerignore
+    -rw-r--r--  1 root root  240 Mar  5 22:19 Dockerfile
+    drwxr-xr-x  2 root root 4096 Mar  5 22:32 config
+    drwxr-xr-x 89 root root 4096 Mar  5 22:28 node_modules
+    -rw-r--r--  1 root root  360 Mar  5 22:21 package.json
+    -rw-r--r--  1 root root 2225 Mar  6 00:37 server.js
+
+
+## Publishing images
+
+Docker images can be published to Docker Hub with the `docker push` command. A `Makefile` can help automate the process of testing, building and publishing an image.
+
+### Using docker push
+
+Tag the image with a repository and a release tag. Note that pushing/pulling using only the default tag of `latest` is risky, as Docker will look for the _first_ image published with that tag and no other release tag.
+
+    $ docker image tag <IMAGE ID> mkulumadzi/ideas-node-sever:v0.1.0
+
+Log in with the docker account that has access to this repository, if you haven't already:
+
+    $ docker login
+
+Push the image to its repository:
+
+    $ docker push mkulumadzi/ideas-node-server:v0.1.0
+    The push refers to a repository [docker.io/mkulumadzi/ideas-node-server]
+    131f62950733: Pushed
+    397b319d9f2e: Pushed
+    ...
+
+
+### Using a Makefile
+
+Makefiles contain a set of directives used with the `make` build automation tool. Using Makefiles with docker, we can automate processes such as building, tagging and releasing our docker images:
+
+    NAME = mkulumadzi/ideas-node-server
+    VERSION = 0.1.0
+
+    .PHONY: all build tag_latest release
+
+    all: build
+
+    build:
+      docker build -t $(NAME):$(VERSION) --rm .
+
+    tag_latest:
+      docker tag $(NAME):$(VERSION) $(NAME):latest
+
+    release: tag_latest
+      @if ! docker images $(NAME) | awk '{ print $$2 }' | grep -q -F $(VERSION); then echo "$(NAME) version $(VERSION) is not yet built. Please run 'make build'"; false; fi
+      docker push $(NAME)
+
+In the above example, we record the name and version of our docker image as variables. The `.PHONY` command tells `make` to use the `all`, `build`, `tag_latest` and `release` commands in this file, rather than looking elsewhere. Using `make all` or `make build` we can build the latest version of our image:
+
+    $ make all
+    docker build -t mkulumadzi/ideas-node-server:0.1.0 --rm .
+    Sending build context to Docker daemon 10.75 kB
+    Step 1/8 : FROM node:boron
+    ---> 0cc9958f0aa8
+    Step 2/8 : RUN mkdir -p /usr/src/app
+    ...
+
+Using `make tag_latest`, we can take the most recent image we built:
+
+    $ make tag_latest
+    docker tag mkulumadzi/ideas-node-server:0.1.0 mkulumadzi/ideas-node-server:latest
+
+And using `make release`, we can tag the latest version and push it to Dockerhub:
+
+    $ make release
+    docker tag mkulumadzi/ideas-node-server:0.1.0 mkulumadzi/ideas-node-server:latest
+    docker push mkulumadzi/ideas-node-server
+    The push refers to a repository [docker.io/mkulumadzi/ideas-node-server]
+    6f8020f5067e: Pushed
+    ...
+
+## Running multi-container applications
+
+### docker-compose
+
+docker-compose is a command-line utility that makes it easy to run multiple containers in a single managed network.
+
+Commands:
+
+- build              Build or rebuild services
+- bundle             Generate a Docker bundle from the Compose - file
+- config             Validate and view the compose file
+- create             Create services
+- down               Stop and remove containers, networks, images, and volumes
+- events             Receive real time events from containers
+- exec               Execute a command in a running container
+- help               Get help on a command
+- kill               Kill containers
+- logs               View output from containers
+- pause              Pause services
+- port               Print the public port for a port binding
+- ps                 List containers
+- pull               Pull service images
+- push               Push service images
+- restart            Restart services
+- rm                 Remove stopped containers
+- run                Run a one-off command
+- scale              Set number of containers for a service
+- start              Start services
+- stop               Stop services
+- unpause            Unpause services
+- up                 Create and start containers
+- version            Show the Docker-Compose version information
+
+## Example application: Ideas App with angular client, node server and mongo backend
+
+The `docker-compose` file lists the configuration options required to run each container, including links between containers and custom environment variables, which can reference these links:
+
+    server:
+      image: mkulumadzi/ideas-node-server
+      links:
+        - mongodb:mongodb
+      ports:
+        - "8080:8080"
+      environment:
+        MONGO_HOST: mongodb
+    mongodb:
+      image: mongo
+      expose:
+        - "27017"
+      ports:
+        - "27017:27017"
+    webapp:
+      image: mkulumadzi/ideas-angular-client
+      links:
+      - server:api1
+      ports:
+      - "80:80"
+
+Running the application:
+
+    $ docker-compose -f ideas-app-docker-compose.yml up -d
+    Creating dockertraining_mongodb_1
+    Creating dockertraining_server_1
+    Creating dockertraining_webapp_1
+
+    $ docker ps
+    CONTAINER ID        IMAGE                             COMMAND
+    7cef223eaa9c        mkulumadzi/ideas-angular-client   "nginx -g 'daemon ..."
+    93e11369cba4        mkulumadzi/ideas-node-server      "npm start"  
+    91dd2eba9d4b        mongo                             "/entrypoint.sh mo...
+
+The ideas angular client is now available at http://192.168.99.100
+
+Stopping a single container in the application:
+
+    $ docker-compose -f ideas-app-docker-compose.yml stop webapp
+
+Starting a single container:
+
+    $ docker-compose -f ideas-app-docker-compose.yml start webapp
+
+Inspecting the application's managed network:
+
+    $ docker network ls
+    NETWORK ID          NAME                DRIVER              SCOPE
+    00d688216bf3        bridge              bridge              local
+    ae8facdd6a9a        host                host                local
+    fa5bff74d774        none                null                local
+
+    $ docker network inspect bridge
+
+    [
+      {
+          "Name": "bridge",
+          "Id": "00d688216bf33c54bb72f4562f257e645e4f0bd24241292612f408516c75a11a",
+          "Created": "2017-03-06T23:36:45.911606912Z",
+          "Scope": "local",
+          "Driver": "bridge",
+          "EnableIPv6": false,
+          "IPAM": {
+              "Driver": "default",
+              "Options": null,
+              "Config": [
+                  {
+                      "Subnet": "172.17.0.0/16",
+                      "Gateway": "172.17.0.1"
+                  }
+              ]
+          },
+          "Internal": false,
+          "Attachable": false,
+          "Containers": {
+              "7cef223eaa9cca26bdb55f5795f5151c01b25636d4ef2156f17c44a311a11755": {
+                  "Name": "dockertraining_webapp_1",
+                  "EndpointID": "5ae2c624a60a739beedc2f9d87c70b565f895ccc8634aedf6f179765fe6a0388",
+                  "MacAddress": "02:42:ac:11:00:04",
+                  "IPv4Address": "172.17.0.4/16",
+                  "IPv6Address": ""
+              },
+              "91dd2eba9d4bbd63bb50aaf0e534b910a1759c32aec6be09fbfba1c0aafad062": {
+                  "Name": "dockertraining_mongodb_1",
+                  "EndpointID": "1d4ef38a46b4f5433d32768c3083f9c6cf71a1887ef9c099107d5a9fd3743a80",
+                  "MacAddress": "02:42:ac:11:00:02",
+                  "IPv4Address": "172.17.0.2/16",
+                  "IPv6Address": ""
+              },
+              "93e11369cba44832b3829553f975784a36055a2eefb5e43c4b0b9ba229e00e6a": {
+                  "Name": "dockertraining_server_1",
+                  "EndpointID": "a98589d664aeea3aeb1b51de8f5b7ae88cc4b0d28a582730e2ae23280862b492",
+                  "MacAddress": "02:42:ac:11:00:03",
+                  "IPv4Address": "172.17.0.3/16",
+                  "IPv6Address": ""
+              }
+          },
+          "Options": {
+              "com.docker.network.bridge.default_bridge": "true",
+              "com.docker.network.bridge.enable_icc": "true",
+              "com.docker.network.bridge.enable_ip_masquerade": "true",
+              "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+              "com.docker.network.bridge.name": "docker0",
+              "com.docker.network.driver.mtu": "1500"
+          },
+          "Labels": {}
+        }
+    ]
+
+## Running applications in a multi-host environment
+
+A variety of tools are available to facilitate the management of an application running containers across multiple hosts.
+
+<TO DO: Swarm stuff>

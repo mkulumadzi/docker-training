@@ -1,3 +1,4 @@
+# Define base image
 FROM node:boron
 
 # Create app directory
