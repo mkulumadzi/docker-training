@@ -35,13 +35,13 @@ docker-machine is a tool for creating and managing Docker hosts, running Docker 
 
 ### Examples
 
-Create a machine called 'dev' using the VirtualBox driver:
+To get started, make sure you have VirtualBox installed. VirtualBox makes it easy to run virtual machines on your computer, and there are some helpful integrations between `docker-machine` and VirtualBox that make it easy to get started:
 
-    $ docker-machine create --driver virtualbox dev
+https://www.virtualbox.org/wiki/Downloads
 
-Create a machine called 'server' with default ssh user 'ubuntu' on AWS using the ec2 driver, running Ubuntu Server 16.10 (the ami is the machine operating system):
+Create a machine called 'default' using the VirtualBox driver:
 
-    $ docker-machine create --driver amazonec2 --amazonec2-access-key $AWS_ACCESS_KEY --amazonec2-secret-key $AWS_SECRET_KEY --amazonec2-region us-west-2 --amazonec2-instance-type m3.medium --amazonec2-ami ami-319e1e51 --amazonec2-ssh-user ubuntu server
+    $ docker-machine create --driver virtualbox default
 
 List locally installed machines:
 
@@ -61,6 +61,11 @@ Print out the environment variables for running machine:
 Configure your terminal to connect to a docker-machine (all `docker` commands from then on will be run on the host machine):
 
     $ eval $(docker-machine env default)
+
+
+From here, you can jump to the next section. However, if you'd like you can also learn more about creating new docker machines using other drivers, allowing you to host them on the cloud. Here is an example command you might use to create a machine hosted on Amazon EC2:
+
+    $ docker-machine create --driver amazonec2 --amazonec2-access-key $AWS_ACCESS_KEY --amazonec2-secret-key $AWS_SECRET_KEY --amazonec2-region us-west-2 --amazonec2-instance-type m3.medium --amazonec2-ami ami-319e1e51 --amazonec2-ssh-user ubuntu server
 
 ## Docker Basics
 
