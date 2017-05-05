@@ -203,6 +203,10 @@ Remove all inactive containers:
 
     $ docker rm $(docker ps -a -q -f status=exited)
 
+Remove all unused images:
+
+    $ docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
+
 Print a list of installed docker `images`:
 
     $ docker images
